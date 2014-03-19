@@ -32,7 +32,7 @@
 
 #define GS_CMD_SIZE            64
 
-#define GS_MAX_ROUTES           4
+#define GS_MAX_ROUTES           5
 #define GS_MAX_PATH_LENGTH      9    // max: "/messages"
 
 #define ESCAPE               0x1B

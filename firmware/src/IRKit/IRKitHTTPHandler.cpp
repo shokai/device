@@ -251,6 +251,27 @@ static int8_t on_post_messages_response(int8_t cid, uint16_t status_code, GSwifi
     return 0;
 }
 
+static int8_t on_get_sensors_request(int8_t cid, GSwifi::GSREQUESTSTATE state){
+    if (state != GSwifi::GSREQUESTSTATE_RECEIVED) {
+        return -1;
+    }
+
+    gs.writeHead(cid, 200);
+
+    gs.write("{\"sensors\":[");
+    for(char i = 0; i < 4; i++){ // read analog-pin 0,1,2,3
+        gs.write((uint8_t) analogRead(i));
+        if(i < 3) gs.write(",");
+    }
+    gs.write("]}");
+    gs.writeEnd();
+
+    ring_put( &commands, COMMAND_CLOSE );
+    ring_put( &commands, cid );
+
+    return 0;
+}
+
 static int8_t on_get_messages_request(int8_t cid, GSwifi::GSREQUESTSTATE state) {
     if (state != GSwifi::GSREQUESTSTATE_RECEIVED) {
         return -1;
@@ -381,6 +402,9 @@ static int8_t on_request(int8_t cid, int8_t routeid, GSwifi::GSREQUESTSTATE stat
     case 3: // POST /wifi
         return on_post_wifi_request(cid, state);
 
+    case 4: // GET /sensors
+        return on_get_sensors_request(cid, state);
+
     default:
         break;
     }
@@ -443,6 +467,8 @@ void irkit_httpserver_register_handler() {
     gs.registerRoute( GSwifi::GSMETHOD_GET,  P("/messages") );
     // 3
     gs.registerRoute( GSwifi::GSMETHOD_POST, P("/wifi") );
+    // 4
+    gs.registerRoute( GSwifi::GSMETHOD_GET, P("/sensors") );
 
     gs.setRequestHandler( &on_request );
 }
